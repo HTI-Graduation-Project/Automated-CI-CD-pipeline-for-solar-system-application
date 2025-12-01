@@ -9,5 +9,4 @@
 
 #   values = [file("${path.module}/values/ingress-values.yaml")]
 
-#   depends_on = [helm_release.aws_lbc]
 # }
