@@ -4,3 +4,8 @@ solar-system.png
 .talismanrc
 coverage
 test-results.xml
+session-manager-plugin.deb
+terraform.tfstate
+elnimr.pem
+ansible
+terraform

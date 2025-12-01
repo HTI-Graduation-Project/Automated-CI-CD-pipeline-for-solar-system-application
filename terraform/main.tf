@@ -140,7 +140,7 @@ resource "aws_key_pair" "my_key" {
   public_key = file("/home/adel/elnimr.pub")
 }
 
-############EKS###############
+###########EKS###############
 
 
 resource "aws_iam_role" "eks" {
