@@ -26,19 +26,22 @@ on:
           required: true
         mongodb-password:
           required: true
+        aws-access-key-id:
+          required: true
+        aws-secret-access-key:
+          required: true  
+
       outputs:
         application_url:
-           value: ${{ jobs.reuse-deploy.outputs.APP_INGRESS_URL }}    
-           
-
+          value: ${{ jobs.reuse-deploy.outputs.APP_INGRESS_URL }}    
 jobs:
     reuse-deploy:
       environment: 
           name: ${{ inputs.environment }}
-          url: https://${{ steps.set-ingress-host-address.outputs.APP_INGRESS_HOST }}
+          url: https://${{ steps.set-ingress-host.outputs.APP_INGRESS_HOST }}
       outputs:
-          APP_INGRESS_URL: ${{ steps.set-ingress-host-address.outputs.APP_INGRESS_HOST }}
-      runs-on: self-hosted
+          APP_INGRESS_URL: ${{ steps.set-ingress-host.outputs.APP_INGRESS_HOST }}
+      runs-on: ubuntu-latest
       steps:
       - name: Checkout Repository
         uses: actions/checkout@v4
@@ -46,24 +49,40 @@ jobs:
       - name: Install kubectl CLI  
         uses: azure/setup-kubectl@v4
         with:
-          version: 'latest'  
+           version: 'latest'  
            
-      - name: Set Kubeconfig file
-        uses: azure/k8s-set-context@v4
+      - name: Configure AWS credentials
+        uses: aws-actions/configure-aws-credentials@v2
         with:
-          method: kubeconfig
-          kubeconfig: ${{ secrets.k8s-kubeconfig }}    
+          aws-access-key-id: ${{ secrets.aws-access-key-id }}
+          aws-secret-access-key: ${{ secrets.aws-secret-access-key }}
+          aws-region: us-east-1
+
+      - name: Update kubeconfig
+        run: |
+          aws eks update-kubeconfig --name solar-system-application --region us-east-1
               
       - name: Fetch kubernetes Cluster Details
         run: |
          kubectl version --client=true    
          echo ====================================
          kubectl get nodes
-           
-      - name: Save Nginx Ingress controller IP as GITHUB Env Variable
-        run: |
-          echo "INGRESS_IP=$(minikube ip)" >> $GITHUB_ENV
 
+      - name: Install Helm
+        uses: azure/setup-helm@v3
+
+      - name: Add Ingress-NGINX Repo
+        run: helm repo add ingress-nginx https://kubernetes.github.io/ingress-nginx
+
+      - name: Update Helm Repos
+        run: helm repo update
+
+      - name: Deploy NGINX Ingress Controller
+        run: |
+          helm upgrade --install ingress-nginx ingress-nginx/ingress-nginx \
+            --namespace ingress-nginx \
+            --create-namespace  
+           
       - name: Replace Token in Manifest files
         uses: cschleiden/replace-tokens@v1
         with:
@@ -71,7 +90,7 @@ jobs:
           tokenSuffix: '_}_'
           files: '["${{ inputs.k8s-manifest-dir }}*.yaml"]'
         env:
-          NAMESPACE: ${{vars.NAMESPACE}}
+          NAMESPACE: ${{ vars.NAMESPACE }}
           REPLICAS: ${{vars.REPLICAS}}  
           IMAGE: abdelkarim3/solar-systems:${{ github.sha }}
           INGRESS_IP: ${{env.INGRESS_IP}}
@@ -102,8 +121,27 @@ jobs:
         run: |
            kubectl apply -f ${{ inputs.k8s-manifest-dir }}
 
-      - name: Set App Ingress Host URL   
-        id: set-ingress-host-address
+      - name: Wait for Ingress Hostname
+        id: set-ingress-host
         run: |
-          echo "APP_INGRESS_HOST=$(kubectl -n ${{vars.NAMESPACE}} get ingress -o jsonpath='{.items[0].spec.tls[0].hosts[0]}')" >> $GITHUB_OUTPUT            
+         echo "Waiting for Ingress External Hostname..."
+         EXTERNAL_HOST=""
+         for i in {1..30}; do
+           EXTERNAL_HOST=$(kubectl -n ${{ inputs.namespace }} get ingress solar-system -o jsonpath='{.status.loadBalancer.ingress[0].hostname}')
+           if [ ! -z "$EXTERNAL_HOST" ]; then
+             break
+           fi
+           echo "Waiting 10s..."
+           sleep 10
+         done
+         if [ -z "$EXTERNAL_HOST" ]; then
+           echo "ERROR: Ingress hostname not assigned"
+           exit 1
+         fi
+         echo "APP_INGRESS_HOST=$EXTERNAL_HOST" >> $GITHUB_OUTPUT
 
+
+      - name: Output Application URL  
+        run: |
+
+          echo "Application URL: https://${{ steps.set-ingress-host.outputs.APP_INGRESS_HOST }}"  

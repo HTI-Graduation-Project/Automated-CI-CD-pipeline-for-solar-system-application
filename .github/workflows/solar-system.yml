@@ -41,14 +41,10 @@ jobs:
           with:
             node-version: ${{matrix.nodejs_version}}
 
-        - name: cache NPM Dependencies
-          uses: actions/cache@v3
+        - name: Composite Action - Cache & Install NPM Packages
+          uses: ./.github/workflows/custom-actions/npm-action
           with:
-            path: node_modules
-            key: ${{runner.os}}-node-modules-${{hashFiles('package-lock.json')}}
-            
-        - name: Install Dependencies
-          run: npm install
+            path_of_folder: node_modules
                  
         - name: Unit Testing
           id: nodejs-unit_testing-step
@@ -85,14 +81,10 @@ jobs:
          #   with:
          #    node-version: 18
 
-          - name: cache NPM Dependencies
-            uses: actions/cache@v3
+          - name: Composite Action - Cache & Install NPM Packages
+            uses: ./.github/workflows/custom-actions/npm-action
             with:
-               path: node_modules
-               key: ${{runner.os}}-node-modules-${{hashFiles('package-lock.json')}}   
-
-          - name: Install Dependencies
-            run: npm install
+             path_of_folder: node_modules
 
           - name: Check Code Coverage
             continue-on-error: true
@@ -129,6 +121,7 @@ jobs:
             mv cobertura-coverage.xml reports-${{ github.sha }}/
             mv test-results.xml reports-${{ github.sha }}/
             ls -ltr reports-${{ github.sha }}/
+
         - name: Upload Report Folder as Artifact
           uses: actions/upload-artifact@v4
           with:
@@ -183,6 +176,7 @@ jobs:
               echo $IP
               echo Testing Image URL using wget
               wget -q -O - 127.0.0.1:3000/live | grep live
+
           - name: Docker Registry Push
             uses: docker/build-push-action@v4
             with:
@@ -199,6 +193,8 @@ jobs:
       secrets: 
         k8s-kubeconfig: ${{ secrets.KUBECONFIG }}
         mongodb-password: ${{ secrets.MONGO_PASSWORD }}
+        aws-access-key-id: ${{ secrets.AWS_ACCESS_KEY_ID }}
+        aws-secret-access-key: ${{ secrets.AWS_SECRET_ACCESS_KEY }}
       with:
         mongodb_uri: ${{ vars.MONGO_URI }} 
         environment: development 
@@ -209,7 +205,7 @@ jobs:
       if: contains(github.ref,'feature/')
       name: Dev integration Testing    
       needs: dev-deploy
-      runs-on: self-hosted
+      runs-on: ubuntu-latest
       steps:
         - name: Test URL Output using CURL and JQ
           env:
@@ -218,6 +214,7 @@ jobs:
             echo $URL
             echo "---------------------------------------------------------------"    
             curl https://$URL/live -s -k | jq -r .status | grep -i live
+
     Prod-deploy:
      if: github.ref == 'refs/heads/main'
      needs: docker
@@ -225,6 +222,8 @@ jobs:
      secrets: 
         k8s-kubeconfig: ${{ secrets.KUBECONFIG }}
         mongodb-password: ${{ secrets.MONGO_PASSWORD }}
+        aws-access-key-id: ${{ secrets.AWS_ACCESS_KEY_ID }}
+        aws-secret-access-key: ${{ secrets.AWS_SECRET_ACCESS_KEY }}
      with:
         mongodb_uri: ${{ vars.MONGO_URI }} 
         environment: Production    
@@ -235,7 +234,7 @@ jobs:
       if: github.ref == 'refs/heads/main'
       name: Prod integration Testing    
       needs: Prod-deploy
-      runs-on: self-hosted
+      runs-on: ubuntu-latest
       steps:
         - name: Test URL Output using CURL and JQ
           env:
@@ -259,6 +258,6 @@ jobs:
           SLACK_WEBHOOK: ${{ secrets.SLACK_WEBHOOK }} 
           SLACK_CHANNEL: github-actions-channel
           SLACK_COLOR: ${{ job.status }}    # or specific color like 'good' or  '#ff00ff'   
-          SLACK_ICON: https://gitlab.com/sidd-harth/solar-system/-/raw/main/images/saturn.png
-          SLACK_MESSAGE: ':hammer_and_wrench Triggered by ${{github.actor}}'
+        #  SLACK_ICON: https://gitlab.com/sidd-harth/solar-system/-/raw/main/images/saturn.png
+          SLACK_MESSAGE: ':hammer_and_wrench: Triggered by ${{github.actor}}'
           SLACK_TITLE: Information
