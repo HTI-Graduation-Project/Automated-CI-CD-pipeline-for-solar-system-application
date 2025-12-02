@@ -28,7 +28,7 @@ resource "aws_subnet" "public_AZ1" {
   tags = {
     "Name"                                                 = "public-${local.AZ1}"
     "kubernetes.io/role/elb"                               = "1"
-    "kubernetes.io/cluster/-${local.eks_name}" = "owned"
+    "kubernetes.io/cluster/${local.eks_name}" = "owned"
   }
 
 }
@@ -43,7 +43,7 @@ resource "aws_subnet" "public_AZ2" {
   tags = {
     "Name"                                                 = "public-${local.AZ2}"
     "kubernetes.io/role/elb"                               = "1"
-    "kubernetes.io/cluster/-${local.eks_name}" = "owned"
+    "kubernetes.io/cluster/${local.eks_name}" = "owned"
   }
 
 }
@@ -56,7 +56,7 @@ resource "aws_subnet" "private_AZ1" {
   tags = {
     "Name"                                                 = "private-${local.AZ1}"
     "kubernetes.io/role/internal-elb"                      = "1"
-    "kubernetes.io/cluster/-${local.eks_name}" = "owned"
+    "kubernetes.io/cluster/${local.eks_name}" = "owned"
   }
 }
 
@@ -68,7 +68,7 @@ resource "aws_subnet" "private_AZ2" {
   tags = {
     "Name"                                                 = "private-${local.AZ2}"
     "kubernetes.io/role/internal-elb"                      = "1"
-    "kubernetes.io/cluster/-${local.eks_name}" = "owned"
+    "kubernetes.io/cluster/${local.eks_name}" = "owned"
   }
 }
 
@@ -118,6 +118,10 @@ resource "aws_route_table" "private" {
 
   tags = {
     "Name" = "private_route"
+  }
+  route {
+    cidr_block     = "0.0.0.0/0"
+    nat_gateway_id = aws_nat_gateway.ngw.id
   }
   route {
     cidr_block     = "0.0.0.0/0"
@@ -177,6 +181,7 @@ resource "aws_eks_cluster" "eks" {
     endpoint_public_access  = true
 
     subnet_ids = [
+
       aws_subnet.private_AZ1.id,
       aws_subnet.private_AZ2.id
     ]
@@ -267,7 +272,3 @@ resource "aws_eks_node_group" "general" {
     ignore_changes = [scaling_config[0].desired_size]
   }
 }
-
-
-
-

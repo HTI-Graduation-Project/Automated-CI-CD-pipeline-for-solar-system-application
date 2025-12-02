@@ -5,6 +5,6 @@ solar-system.png
 coverage
 test-results.xml
 session-manager-plugin.deb
-terraform.tfstate
 elnimr.pem
 ansible
+
