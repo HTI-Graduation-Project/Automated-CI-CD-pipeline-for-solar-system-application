@@ -184,7 +184,7 @@ jobs:
              push: true
              tags: |
               adelelnimr/solar-systems:${{ github.sha }}
-              #  ghcr.io/abdelkarim-29/solar-systems:${{ github.sha }}   
+
                
     dev-deploy:
       if: contains(github.ref,'feature/')
