@@ -5,14 +5,10 @@ metadata:
   namespace: "_{_NAMESPACE_}_"
   labels:
     name: solar-system
-  annotations:
-    service.beta.kubernetes.io/aws-load-balancer-type: "classic"       
-    service.beta.kubernetes.io/aws-load-balancer-internal: "false" 
 spec:
-  type: LoadBalancer
   selector:
     name: solar-system
   ports:
-    - port: 80
+    - port: 3000
       targetPort: 3000
       protocol: TCP
