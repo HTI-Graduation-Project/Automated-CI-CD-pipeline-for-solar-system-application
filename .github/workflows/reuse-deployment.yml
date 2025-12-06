@@ -127,7 +127,7 @@ jobs:
          echo "Waiting for Ingress External Hostname..."
          EXTERNAL_HOST=""
          for i in {1..30}; do
-           EXTERNAL_HOST=$(kubectl get svc solar-system -n development -o jsonpath='{.status.loadBalancer.ingress[0].hostname}')
+           EXTERNAL_HOST=$(kubectl get svc external-ingress-nginx-controller -n ingress -o jsonpath='{.status.loadBalancer.ingress[0].hostname}')
            if [ ! -z "$EXTERNAL_HOST" ]; then
              break
            fi
@@ -143,5 +143,6 @@ jobs:
 
       - name: Output Application URL  
         run: |
+
 
           echo "Application URL: https://${{ steps.set-ingress-host.outputs.APP_INGRESS_HOST }}"  
