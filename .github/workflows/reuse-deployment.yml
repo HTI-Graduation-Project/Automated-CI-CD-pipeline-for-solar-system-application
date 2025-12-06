@@ -107,15 +107,15 @@ jobs:
         run: |
           kubectl get ns ${{ inputs.namespace }} || kubectl create ns ${{ inputs.namespace }}
   
-      # - name: Create MongoDB Scretes
-      #   run: |
-      #    kubectl -n ${{vars.NAMESPACE}} create secret generic mongo-db-creds \
-      #    --from-literal=MONGO_URI=${{inputs.mongodb_uri}} \
-      #    --from-literal=MONGO_USERNAME=${{env.MONGO_USERNAME}} \
-      #    --from-literal=MONGO_PASSWORD=${{ secrets.mongodb-password}} \
-      #    --save-config \
-      #    --dry-run=client \
-      #    -o yaml | kubectl apply -f -
+      - name: Create MongoDB Scretes
+        run: |
+         kubectl -n ${{vars.NAMESPACE}} create secret generic mongo-db-creds \
+         --from-literal=MONGO_URI=${{inputs.mongodb_uri}} \
+         --from-literal=MONGO_USERNAME=${{env.MONGO_USERNAME}} \
+         --from-literal=MONGO_PASSWORD=${{ secrets.mongodb-password}} \
+         --save-config \
+         --dry-run=client \
+         -o yaml | kubectl apply -f -
 
       - name: Deploy to Dev ENV
         run: |
