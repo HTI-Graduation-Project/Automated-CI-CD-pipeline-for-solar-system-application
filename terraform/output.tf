@@ -21,10 +21,4 @@ output "cluster_name_version_region" {
   ]
 }
 
-# output "cluster_nodes" {
-#   value = [
-#     aws_eks_node_group.general.
-#     aws_eks_node_group.general.instance_type,
-#     aws_eks_node_group.general.status
-#   ]
-# }
+

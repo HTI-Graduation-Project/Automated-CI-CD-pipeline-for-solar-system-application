@@ -57,6 +57,7 @@ resource "aws_subnet" "private_AZ1" {
     "Name"                                                 = "private-${local.AZ1}"
     "kubernetes.io/role/internal-elb"                      = "1"
     "kubernetes.io/cluster/${local.eks_name}" = "owned"
+
   }
 }
 
@@ -70,6 +71,7 @@ resource "aws_subnet" "private_AZ2" {
     "kubernetes.io/role/internal-elb"                      = "1"
     "kubernetes.io/cluster/${local.eks_name}" = "owned"
   }
+
 }
 
 resource "aws_nat_gateway" "ngw" {
@@ -123,10 +125,12 @@ resource "aws_route_table" "private" {
     cidr_block     = "0.0.0.0/0"
     nat_gateway_id = aws_nat_gateway.ngw.id
   }
+
   route {
     cidr_block     = "0.0.0.0/0"
     nat_gateway_id = aws_nat_gateway.ngw.id
   }
+
 }
 
 resource "aws_route_table_association" "private_AZ1" {
@@ -145,6 +149,7 @@ resource "aws_key_pair" "my_key" {
 }
 
 ###########EKS###############
+
 
 
 resource "aws_iam_role" "eks" {
@@ -181,7 +186,6 @@ resource "aws_eks_cluster" "eks" {
     endpoint_public_access  = true
 
     subnet_ids = [
-
       aws_subnet.private_AZ1.id,
       aws_subnet.private_AZ2.id
     ]
@@ -247,6 +251,7 @@ resource "aws_eks_node_group" "general" {
   capacity_type  = "ON_DEMAND"
   instance_types = ["t2.medium"]
 
+
   scaling_config {
     desired_size = 1
     max_size     = 2
@@ -272,6 +277,7 @@ resource "aws_eks_node_group" "general" {
     ignore_changes = [scaling_config[0].desired_size]
   }
 }
+
 resource "null_resource" "import_k8s_lb_sg" {
   provisioner "local-exec" {
     command = <<EOT
@@ -294,3 +300,4 @@ EOT
     always_run = "${timestamp()}"
   }
 }
+
