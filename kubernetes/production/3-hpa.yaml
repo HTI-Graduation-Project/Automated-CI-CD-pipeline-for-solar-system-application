@@ -2,13 +2,14 @@
 apiVersion: autoscaling/v2
 kind: HorizontalPodAutoscaler
 metadata:
-  app: solar-system
+
+  name: solar-system-hpa
   namespace: "_{_NAMESPACE_}_"
 spec:
   scaleTargetRef:
     apiVersion: apps/v1
     kind: Deployment
-    app: solar-system
+    name: solar-system
   minReplicas: 1
   maxReplicas: 5
   metrics:

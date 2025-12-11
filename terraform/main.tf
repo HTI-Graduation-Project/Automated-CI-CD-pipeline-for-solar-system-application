@@ -245,7 +245,7 @@ resource "aws_eks_node_group" "general" {
   ]
 
   capacity_type  = "ON_DEMAND"
-  instance_types = ["c7i-flex.large"]
+  instance_types = ["t2.medium"]
 
   scaling_config {
     desired_size = 1

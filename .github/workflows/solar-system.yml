@@ -27,7 +27,7 @@ jobs:
         strategy:
           matrix:
            nodejs_version: [18,20] 
-           operating_systems: [ubuntu-latest]
+           operating_systems: [ubuntu-latest, macos-latest]
            exclude:
              - nodejs_version: 18
                operating_systems: macos-latest
