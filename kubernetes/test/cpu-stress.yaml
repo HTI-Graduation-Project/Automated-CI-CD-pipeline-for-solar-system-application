@@ -2,7 +2,7 @@ apiVersion: batch/v1
 kind: Job
 metadata:
   name: cpu-stress
-  namespace: dev
+  namespace: production
 spec:
   template:
     spec:
