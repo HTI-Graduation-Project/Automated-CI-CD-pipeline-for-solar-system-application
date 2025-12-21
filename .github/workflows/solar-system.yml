@@ -322,25 +322,9 @@ jobs:
       - name: Wait for Grafana LoadBalancer
         id: grafana-url
         run: |
-          echo "Waiting for Grafana LoadBalancer URL..."
-          for i in {1..30}; do
-            GRAFANA_HOST=$(kubectl get svc monitoring-grafana \
-              -n monitoring \
-              -o jsonpath='{.status.loadBalancer.ingress[0].hostname}')
+          echo "Waiting for Grafana LoadBalancer URL..." 
 
-            if [ -n "$GRAFANA_HOST" ]; then
-              echo "Grafana LoadBalancer ready: $GRAFANA_HOST"
-              echo "GRAFANA_URL=http://$GRAFANA_HOST" >> $GITHUB_ENV
-              echo "GRAFANA_URL=http://$GRAFANA_HOST" >> $GITHUB_OUTPUT
-              exit 0
-            fi
 
-          echo "Still waiting... ($i)"
-          sleep 10
-          done
-
-          echo "❌ Grafana LoadBalancer not ready after timeout"
-      exit 1
 
       - name: Publish Grafana URL
         run: |
