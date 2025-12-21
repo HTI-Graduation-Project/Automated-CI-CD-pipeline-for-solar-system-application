@@ -317,14 +317,20 @@ jobs:
            kubectl -n monitoring rollout status deployment monitoring-grafana
 
       - name: Get Grafana URL
-        id: grafana
+        id: grafana-url
         run: |
-          GRAFANA_URL=$(kubectl get svc monitoring-grafana -n monitoring -o jsonpath='{.status.loadBalancer.ingress[0].hostname}')
-          echo "GRAFANA_URL=http://$GRAFANA_URL" >> $GITHUB_OUTPUT
+          GRAFANA_HOST=$(kubectl get svc monitoring-grafana \
+          -n monitoring \
+          -o jsonpath='{.status.loadBalancer.ingress[0].hostname}')
+          echo "GRAFANA_URL=http://$GRAFANA_HOST" >> $GITHUB_ENV
+          echo "GRAFANA_URL=http://$GRAFANA_HOST" >> $GITHUB_OUTPUT
 
-      - name: Write Grafana URL to Summary
+      - name: Publish Grafana URL
         run: |
           echo "## 📊 Monitoring Dashboard" >> $GITHUB_STEP_SUMMARY
-          echo "- **Grafana URL:** [${{ steps.grafana.outputs.GRAFANA_URL }}](${{ steps.grafana.outputs.GRAFANA_URL }})" >> $GITHUB_STEP_SUMMARY
+          echo "" >> $GITHUB_STEP_SUMMARY
+          echo "- **Grafana URL:** [$GRAFANA_URL]($GRAFANA_URL)" >> $GITHUB_STEP_SUMMARY
           echo "- **Username:** admin" >> $GITHUB_STEP_SUMMARY
-          echo "- **Password:** admin123" >> $GITHUB_STEP_SUMMARY
+          echo "- **Password:** (from secret)" >> $GITHUB_STEP_SUMMARY
+  
+
