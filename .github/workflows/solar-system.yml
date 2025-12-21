@@ -259,3 +259,71 @@ jobs:
         #  SLACK_ICON: https://gitlab.com/sidd-harth/solar-system/-/raw/main/images/saturn.png
           SLACK_MESSAGE: ':hammer_and_wrench: Triggered by ${{github.actor}}'
           SLACK_TITLE: Information
+
+
+    monitoring:
+     name: Deploy Monitoring (Prometheus + Loki + Grafana)
+     needs: docker
+     runs-on: ubuntu-latest
+
+     steps:
+      - name: Checkout Repository
+        uses: actions/checkout@v4
+
+      - name: Install kubectl
+        uses: azure/setup-kubectl@v4
+        with:
+          version: 'latest'
+
+      - name: Install Helm
+        uses: azure/setup-helm@v3
+
+      - name: Configure AWS credentials
+        uses: aws-actions/configure-aws-credentials@v2
+        with:
+           aws-access-key-id: ${{ secrets.AWS_ACCESS_KEY_ID }}
+           aws-secret-access-key: ${{ secrets.AWS_SECRET_ACCESS_KEY }}
+           aws-region: us-east-1
+
+      - name: Update kubeconfig
+        run: |
+          aws eks update-kubeconfig --name solar-system-application --region us-east-1
+
+      - name: Add Helm Repos
+        run: |
+          helm repo add prometheus-community https://prometheus-community.github.io/helm-charts
+          helm repo add grafana https://grafana.github.io/helm-charts
+          helm repo update
+
+      - name: Create monitoring namespace
+        run: |
+          kubectl get ns monitoring || kubectl create ns monitoring
+
+      - name: Deploy Prometheus + Grafana
+        run: |
+          helm upgrade --install monitoring prometheus-community/kube-prometheus-stack \
+          -n monitoring \
+          -f monitoring/grafana-values.yaml
+
+      - name: Deploy Loki
+        run: |
+          helm upgrade --install loki grafana/loki-stack \
+          -n monitoring \
+          -f monitoring/loki-values.yaml
+
+      - name: Wait for Grafana Deployment
+        run: |
+           kubectl -n monitoring rollout status deployment monitoring-grafana
+
+      - name: Get Grafana URL
+        id: grafana
+        run: |
+          GRAFANA_URL=$(kubectl get svc monitoring-grafana -n monitoring -o jsonpath='{.status.loadBalancer.ingress[0].hostname}')
+          echo "GRAFANA_URL=http://$GRAFANA_URL" >> $GITHUB_OUTPUT
+
+      - name: Write Grafana URL to Summary
+        run: |
+          echo "## 📊 Monitoring Dashboard" >> $GITHUB_STEP_SUMMARY
+          echo "- **Grafana URL:** [${{ steps.grafana.outputs.GRAFANA_URL }}](${{ steps.grafana.outputs.GRAFANA_URL }})" >> $GITHUB_STEP_SUMMARY
+          echo "- **Username:** admin" >> $GITHUB_STEP_SUMMARY
+          echo "- **Password:** admin123" >> $GITHUB_STEP_SUMMARY

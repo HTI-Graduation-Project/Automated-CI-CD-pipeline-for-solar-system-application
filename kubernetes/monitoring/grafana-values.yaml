@@ -1,0 +1,29 @@
+grafana:
+  adminUser: admin
+  adminPassword: admin123
+
+  service:
+    type: LoadBalancer
+    port: 80
+
+  datasources:
+    datasources.yaml:
+      apiVersion: 1
+      datasources:
+        - name: Prometheus
+          type: prometheus
+          url: http://monitoring-kube-prometheus-prometheus.monitoring:9090
+          access: proxy
+          isDefault: true
+
+        - name: Loki
+          type: loki
+          url: http://loki.monitoring:3100
+          access: proxy
+
+  dashboards:
+    default:
+      kubernetes:
+        gnetId: 6417
+        revision: 1
+        datasource: Prometheus
