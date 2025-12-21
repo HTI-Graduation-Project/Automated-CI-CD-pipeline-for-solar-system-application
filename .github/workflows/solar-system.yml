@@ -306,15 +306,14 @@ jobs:
         run: |
            helm upgrade --install monitoring prometheus-community/kube-prometheus-stack \
            -n monitoring \
-           -f kubernetes/monitoring/grafana-values.yaml
+           -f monitoring/grafana-values.yaml
 
 
       - name: Deploy Loki
         run: |
           helm upgrade --install loki grafana/loki-stack \
           -n monitoring \
-          -f kubernetes/monitoring/loki-values.yaml
-
+          -f monitoring/loki-values.yaml
       - name: Wait for Grafana Deployment
         run: |
            kubectl -n monitoring rollout status deployment monitoring-grafana
@@ -322,15 +321,17 @@ jobs:
       - name: Get Grafana URL
         id: grafana
         run: |
-          GRAFANA_URL=$(kubectl get svc monitoring-grafana -n monitoring -o jsonpath='{.status.loadBalancer.ingress[0].hostname}')
-          echo "GRAFANA_URL=http://$GRAFANA_URL" >> $GITHUB_OUTPUT
-       
+          HOST=$(kubectl get svc monitoring-grafana -n monitoring \
+           -o jsonpath='{.status.loadBalancer.ingress[0].hostname}')
+          echo "url=http://$HOST" >> $GITHUB_OUTPUT
+
       - name: Publish Grafana URL
         run: |
           echo "## 📊 Monitoring Dashboard" >> $GITHUB_STEP_SUMMARY
           echo "" >> $GITHUB_STEP_SUMMARY
-          echo "- **Grafana URL:** [$GRAFANA_URL]($GRAFANA_URL)" >> $GITHUB_STEP_SUMMARY
+          echo "- **Grafana URL:** [${{ steps.grafana.outputs.url }}](${{ steps.grafana.outputs.url }})" >> $GITHUB_STEP_SUMMARY
           echo "- **Username:** admin" >> $GITHUB_STEP_SUMMARY
           echo "- **Password:** (from secret)" >> $GITHUB_STEP_SUMMARY
-  
 
+
+  
