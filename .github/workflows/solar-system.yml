@@ -303,13 +303,13 @@ jobs:
         run: |
           helm upgrade --install monitoring prometheus-community/kube-prometheus-stack \
           -n monitoring \
-          -f monitoring/grafana-values.yaml
+          -f kubernetes/monitoring/grafana-values.yaml
 
       - name: Deploy Loki
         run: |
           helm upgrade --install loki grafana/loki-stack \
           -n monitoring \
-          -f monitoring/loki-values.yaml
+          -f kubernetes/monitoring/loki-values.yaml
 
       - name: Wait for Grafana Deployment
         run: |
