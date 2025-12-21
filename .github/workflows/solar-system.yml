@@ -327,11 +327,9 @@ jobs:
 
       - name: Publish Grafana URL
         run: |
-          echo "## 📊 Monitoring Dashboard" >> $GITHUB_STEP_SUMMARY
-          echo "" >> $GITHUB_STEP_SUMMARY
-          echo "- **Grafana URL:** [${{ steps.grafana.outputs.url }}](${{ steps.grafana.outputs.url }})" >> $GITHUB_STEP_SUMMARY
-          echo "- **Username:** admin" >> $GITHUB_STEP_SUMMARY
-          echo "- **Password:** (from secret)" >> $GITHUB_STEP_SUMMARY
+          echo "Grafana URL: http://{{ steps.grafana.outputs.url }}"
+
+          
 
 
   
