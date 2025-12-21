@@ -257,9 +257,12 @@ jobs:
           SLACK_CHANNEL: github-actions-channel
           SLACK_COLOR: ${{ job.status }}    # or specific color like 'good' or  '#ff00ff'   
         #  SLACK_ICON: https://gitlab.com/sidd-harth/solar-system/-/raw/main/images/saturn.png
-          SLACK_MESSAGE: ':hammer_and_wrench: Triggered by ${{github.actor}}'
+          SLACK_MESSAGE: |
+            ':hammer_and_wrench: Triggered by ${{github.actor}}'
+            :bar_chart: Monitoring Ready
+            Grafana: ${{ env.GRAFANA_URL }}
           SLACK_TITLE: Information
-
+ 
 
     monitoring:
      name: Deploy Monitoring (Prometheus + Loki + Grafana)
@@ -316,14 +319,28 @@ jobs:
         run: |
            kubectl -n monitoring rollout status deployment monitoring-grafana
 
-      - name: Get Grafana URL
+      - name: Wait for Grafana LoadBalancer
         id: grafana-url
         run: |
-          GRAFANA_HOST=$(kubectl get svc monitoring-grafana \
-          -n monitoring \
-          -o jsonpath='{.status.loadBalancer.ingress[0].hostname}')
-          echo "GRAFANA_URL=http://$GRAFANA_HOST" >> $GITHUB_ENV
-          echo "GRAFANA_URL=http://$GRAFANA_HOST" >> $GITHUB_OUTPUT
+          echo "Waiting for Grafana LoadBalancer URL..."
+          for i in {1..30}; do
+            GRAFANA_HOST=$(kubectl get svc monitoring-grafana \
+              -n monitoring \
+              -o jsonpath='{.status.loadBalancer.ingress[0].hostname}')
+
+            if [ -n "$GRAFANA_HOST" ]; then
+              echo "Grafana LoadBalancer ready: $GRAFANA_HOST"
+              echo "GRAFANA_URL=http://$GRAFANA_HOST" >> $GITHUB_ENV
+              echo "GRAFANA_URL=http://$GRAFANA_HOST" >> $GITHUB_OUTPUT
+              exit 0
+            fi
+
+          echo "Still waiting... ($i)"
+          sleep 10
+          done
+
+          echo "❌ Grafana LoadBalancer not ready after timeout"
+      exit 1
 
       - name: Publish Grafana URL
         run: |
