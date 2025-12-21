@@ -263,7 +263,6 @@ jobs:
             Grafana: ${{ env.GRAFANA_URL }}
           SLACK_TITLE: Information
  
-
     monitoring:
      name: Deploy Monitoring (Prometheus + Loki + Grafana)
      needs: docker
@@ -327,9 +326,4 @@ jobs:
 
       - name: Publish Grafana URL
         run: |
-          echo "Grafana URL: http://{{ steps.grafana.outputs.url }}"
-
-          
-
-
-  
+          echo "Grafana URL: ${{ steps.grafana.outputs.url }}"
