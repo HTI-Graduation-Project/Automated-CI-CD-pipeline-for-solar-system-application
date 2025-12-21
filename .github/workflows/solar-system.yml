@@ -301,9 +301,10 @@ jobs:
 
       - name: Deploy Prometheus + Grafana
         run: |
-          helm upgrade --install monitoring prometheus-community/kube-prometheus-stack \
-          -n monitoring \
-          -f kubernetes/monitoring/grafana-values.yaml
+           helm upgrade --install monitoring prometheus-community/kube-prometheus-stack \
+           -n monitoring \
+           -f kubernetes/monitoring/grafana-values.yaml
+
 
       - name: Deploy Loki
         run: |
