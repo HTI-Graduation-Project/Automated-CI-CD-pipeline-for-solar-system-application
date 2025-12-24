@@ -134,7 +134,7 @@ jobs:
              aws-region: us-east-1
         
         - name: Upload to AWS S3    
-          run: aws sync ./reports-${{ github.sha }} s3://solar-app-s3/code_test_reports/ --delete   
+          run: aws s3 sync ./reports-${{ github.sha }} s3://solar-app-s3/code_test_reports/ --delete   
 
     docker:
        name: contaierization
