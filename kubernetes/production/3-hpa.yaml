@@ -10,7 +10,7 @@ spec:
     kind: Deployment
     name: solar-system
   minReplicas: 1
-  maxReplicas: 5
+  maxReplicas: 50
   metrics:
     - type: Resource
       resource:
