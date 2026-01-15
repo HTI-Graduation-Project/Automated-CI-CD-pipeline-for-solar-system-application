@@ -15,5 +15,5 @@ spec:
               name: solar-system
               port:
                 number: 3000
-          path: /
+          path: /dev
           pathType: Prefix
