@@ -7,7 +7,7 @@ metadata:
   namespace: _{_NAMESPACE_}_
 spec:
     rules:
-    - host: _{_INGRESS_IP_}_
+    - host: solar-system-_{_NAMESPACE_}_._{_INGRESS_IP_}_.nip.io
       http:
         paths:
         - backend:
@@ -15,5 +15,5 @@ spec:
               name: solar-system
               port:
                 number: 3000
-          path: /dev
+          path: /
           pathType: Prefix
