@@ -3,7 +3,7 @@ kind: Ingress
 metadata:
   annotations:
     kubernetes.io/ingress.class: nginx
-  name: solar-system
+  name: dev-solar-system
   namespace: _{_NAMESPACE_}_
 spec:
     rules:
